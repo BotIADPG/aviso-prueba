@@ -77,8 +77,14 @@
     $('conexion-texto').textContent = ok ? 'Actualizado a las ' + horaAhora() : 'Sin señal. Mostrando lo último que recibimos.';
   }
 
+  // Último estado guardado en el teléfono, para mostrarlo cuando no hay señal. El almacenamiento puede fallar (modo privado): se ignora.
+  var GUARDADO = 'mi-visita-estado';
+  function guardar(e) { try { localStorage.setItem(GUARDADO, JSON.stringify(e)); } catch (x) { /* sin almacenamiento */ } }
+  function leerGuardado() { try { return JSON.parse(localStorage.getItem(GUARDADO) || 'null'); } catch (x) { return null; } }
+
   // ---------- Seguimiento ----------
   function pintar(e) {
+    guardar(e);
     var avisos = e.avisos || [];          // del más nuevo al más viejo
     var paso = e.paso || 0;
     var cfg = ACCION[paso] || ACCION[0];
@@ -207,8 +213,16 @@
     setInterval(refrescar, 60000);
 
     if (Notification.permission === 'denied') { mostrarNegado(); return; }
-    consultar()
-      .then(function (e) { if (e && e.ok) pintar(e); else mostrar('registro'); })
+    navigator.serviceWorker.ready
+      .then(function (reg) { return reg.pushManager.getSubscription(); })
+      .then(function (sub) {
+        if (!sub) { mostrar('registro'); return; }
+        return postJSON(CONFIG.ESTADO, { endpoint: sub.endpoint }).then(
+          function (e) { if (e && e.ok) pintar(e); else mostrar('registro'); },
+          // Ya está suscrito pero no hay señal (patio): mostrar lo último guardado, nunca el formulario.
+          function () { pintar(leerGuardado() || { ok: true, paso: 0, avisos: [] }); conexion(false); }
+        );
+      })
       .catch(function () { mostrar('registro'); });
   }
 

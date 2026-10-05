@@ -14,8 +14,8 @@ function textoActual() {
     return fetch(CONFIG.ESTADO, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ endpoint: sub.endpoint }), signal: ctrl.signal
-    }).then(function (r) { clearTimeout(t); return r.json(); })
-      .then(function (j) { return (j.ok && j.ultimo && j.ultimo.texto) ? j.ultimo.texto : GENERICO; });
+    }).then(function (r) { return r.json(); })   // el límite de 4 s cubre también la lectura del cuerpo
+      .then(function (j) { clearTimeout(t); return (j.ok && j.ultimo && j.ultimo.texto) ? j.ultimo.texto : GENERICO; });
   }).catch(function () { return GENERICO; });
 }
 
