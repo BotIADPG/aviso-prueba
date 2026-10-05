@@ -46,6 +46,15 @@
     return Uint8Array.from(raw, function (c) { return c.charCodeAt(0); });
   }
 
+  function mismaClave(sub, clave) {
+    var k = sub.options && sub.options.applicationServerKey;
+    if (!k) return false;
+    var a = new Uint8Array(k);
+    if (a.length !== clave.length) return false;
+    for (var i = 0; i < a.length; i++) { if (a[i] !== clave[i]) return false; }
+    return true;
+  }
+
   function postJSON(url, cuerpo) {
     return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) })
       .then(function (r) { if (!r.ok) throw new Error('El servidor respondió ' + r.status); return r.json(); });
@@ -152,12 +161,19 @@
         return navigator.serviceWorker.ready;
       })
       .then(function (reg) {
+        // Reusar la suscripción si es de nuestra llave: cada suscripción nueva es otra dirección y la vieja quedaría activa.
         return reg.pushManager.getSubscription().then(function (vieja) {
-          var opciones = { userVisibleOnly: true, applicationServerKey: aBytes(CONFIG.APP_KEY) };
-          return (vieja ? vieja.unsubscribe() : Promise.resolve()).then(function () { return reg.pushManager.subscribe(opciones); });
+          var clave = aBytes(CONFIG.APP_KEY);
+          if (vieja && mismaClave(vieja, clave)) return { sub: vieja, anterior: '' };
+          var opciones = { userVisibleOnly: true, applicationServerKey: clave };
+          return (vieja ? vieja.unsubscribe() : Promise.resolve())
+            .then(function () { return reg.pushManager.subscribe(opciones); })
+            .then(function (sub) { return { sub: sub, anterior: vieja ? vieja.endpoint : '' }; });
         });
       })
-      .then(function (sub) { return postJSON(CONFIG.REGISTRO, { celular: digitos, sub: sub.toJSON(), ua: navigator.userAgent }); })
+      .then(function (r) {
+        return postJSON(CONFIG.REGISTRO, { celular: digitos, sub: r.sub.toJSON(), anterior: r.anterior, ua: navigator.userAgent });
+      })
       .then(function (r) {
         if (!r.ok) throw new Error(r.error || 'No pudimos activar sus avisos.');
         return consultar();
