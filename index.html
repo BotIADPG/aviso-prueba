@@ -10,6 +10,7 @@
   body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #f4f6fa; color: #1b2433; }
   main { max-width: 420px; margin: 0 auto; }
   h1 { font-size: 22px; }
+  input { width: 100%; box-sizing: border-box; padding: 14px; font-size: 20px; margin-bottom: 12px; border: 1px solid #b8c0cc; border-radius: 10px; }
   button { width: 100%; padding: 16px; font-size: 18px; border: 0; border-radius: 10px; background: #1E3F77; color: #fff; }
   #estado { margin-top: 16px; padding: 12px; border-radius: 8px; background: #fff; min-height: 1.4em; }
   small { color: #5b6577; }
@@ -17,15 +18,16 @@
 </head>
 <body>
 <main>
-  <h1>Prueba de avisos</h1>
-  <p>Página temporal para probar si los avisos llegan con el teléfono bloqueado.</p>
+  <h1>Prueba de avisos (v2)</h1>
+  <p>Página temporal. Escribe tu celular y activa los avisos.</p>
+  <input id="cel" type="tel" inputmode="numeric" placeholder="Celular a 10 dígitos" autocomplete="tel">
   <button id="activar">Activar avisos</button>
   <div id="estado">Sin activar.</div>
   <p><small>En iPhone: primero Compartir → "Agregar a inicio" y ábrela desde ese ícono.</small></p>
 </main>
 <script>
-const CLAVE = 'BO4ibMw8EHi-VOz7LAt-1nWJQVvglzUvNDoctY60BbwynE61XOsh2x07d93h7QXg4fv-7GAZA94My5kBKQB19gc';
-const REGISTRO = 'https://aris.gilm.com.mx:5443/webhook/avisos-web-k3p9';
+const CLAVE = 'BKVh6q993yXIuf2ert4ecnlWbfz-4XuW1Gm_Ql66hugt9CyD8i6S4sKe5mEW-P9Ps4j48zWGJsiakgbiKYOiTVA';
+const REGISTRO = 'https://aris.gilm.com.mx:5443/webhook/avisos-registro';
 const estado = document.getElementById('estado');
 
 function aBytes(b64) {
@@ -44,11 +46,13 @@ document.getElementById('activar').addEventListener('click', async () => {
     if (permiso !== 'granted') { estado.textContent = 'Permiso negado: ' + permiso; return; }
     const reg = await navigator.serviceWorker.register('sw.js');
     await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(CLAVE) });
+    const vieja = await reg.pushManager.getSubscription();
+    if (vieja) await vieja.unsubscribe(); // la suscripción anterior está ligada a otra llave
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(CLAVE) });
     const r = await fetch(REGISTRO, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sub: sub.toJSON(), ua: navigator.userAgent, ts: new Date().toISOString() }) });
-    estado.textContent = r.ok ? '✅ Avisos activados. Ya puedes cerrar y bloquear el teléfono.' : 'Error al registrar: ' + r.status;
+      body: JSON.stringify({ celular: document.getElementById('cel').value, sub: sub.toJSON(), ua: navigator.userAgent }) });
+    const j = await r.json();
+    estado.textContent = j.ok ? '✅ Avisos activados para ···' + j.tel10.slice(-4) + '. Ya puedes cerrar y bloquear.' : 'Error: ' + j.error;
   } catch (e) {
     estado.textContent = 'Error: ' + e.message;
   }
