@@ -2,61 +2,84 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prueba de avisos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi visita · Perfiles LM</title>
+<meta name="theme-color" content="#1E3F77">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icono-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<style>
-  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #f4f6fa; color: #1b2433; }
-  main { max-width: 420px; margin: 0 auto; }
-  h1 { font-size: 22px; }
-  input { width: 100%; box-sizing: border-box; padding: 14px; font-size: 20px; margin-bottom: 12px; border: 1px solid #b8c0cc; border-radius: 10px; }
-  button { width: 100%; padding: 16px; font-size: 18px; border: 0; border-radius: 10px; background: #1E3F77; color: #fff; }
-  #estado { margin-top: 16px; padding: 12px; border-radius: 8px; background: #fff; min-height: 1.4em; }
-  small { color: #5b6577; }
-</style>
+<meta name="apple-mobile-web-app-title" content="Mi visita">
+<link rel="stylesheet" href="estilo.css">
 </head>
 <body>
-<main>
-  <h1>Prueba de avisos (v2)</h1>
-  <p>Página temporal. Escribe tu celular y activa los avisos.</p>
-  <input id="cel" type="tel" inputmode="numeric" placeholder="Celular a 10 dígitos" autocomplete="tel">
-  <button id="activar">Activar avisos</button>
-  <div id="estado">Sin activar.</div>
-  <p><small>En iPhone: primero Compartir → "Agregar a inicio" y ábrela desde ese ícono.</small></p>
+<header class="barra">
+  <span class="marca">Perfiles LM</span>
+  <span class="folio" id="folio" hidden></span>
+</header>
+
+<main id="app">
+  <!-- Seguimiento -->
+  <section id="vista-seguimiento" hidden>
+    <div class="letrero" id="letrero" role="status" aria-live="polite">
+      <div class="letrero-marco">
+        <p class="letrero-titulo" id="letrero-titulo"></p>
+        <p class="letrero-detalle" id="letrero-detalle"></p>
+      </div>
+    </div>
+    <p class="actualizado" id="actualizado"></p>
+
+    <ol class="pasos" id="pasos" aria-label="Avance de su visita"></ol>
+
+    <h2 class="subtitulo">Avisos de esta visita</h2>
+    <ul class="historial" id="historial"></ul>
+    <p class="vacio" id="historial-vacio" hidden>Aquí aparecerán los avisos de su visita.</p>
+
+    <footer class="pie">
+      <span id="pie-tel"></span>
+      <button type="button" class="enlace" id="cambiar">Cambiar celular</button>
+    </footer>
+  </section>
+
+  <!-- Registro -->
+  <section id="vista-registro" hidden>
+    <h1 class="titulo">Siga su visita desde el celular</h1>
+    <p class="texto">Le avisamos con sonido cuando pueda ingresar y cuando su papelería esté lista. Sin costo y sin descargar nada.</p>
+    <form id="form-registro" novalidate>
+      <label for="cel" class="etiqueta">Su celular</label>
+      <input id="cel" name="cel" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10 dígitos" maxlength="16">
+      <p class="error" id="error" role="alert" hidden></p>
+      <button type="submit" class="boton" id="boton-activar">Activar avisos</button>
+    </form>
+    <p class="nota">Al tocar el botón, su teléfono le pedirá permiso para mostrar avisos. Elija <strong>Permitir</strong>.</p>
+  </section>
+
+  <!-- iPhone fuera de la pantalla de inicio -->
+  <section id="vista-iphone" hidden>
+    <h1 class="titulo">Primero agréguela a su pantalla de inicio</h1>
+    <p class="texto">En iPhone los avisos solo funcionan desde el ícono de inicio.</p>
+    <ol class="instrucciones">
+      <li>Toque el botón <strong>Compartir</strong> de Safari (el cuadro con la flecha hacia arriba).</li>
+      <li>Elija <strong>Agregar a inicio</strong> y luego <strong>Agregar</strong>.</li>
+      <li>Abra <strong>Mi visita</strong> desde el ícono nuevo y active sus avisos.</li>
+    </ol>
+  </section>
+
+  <!-- Permiso negado -->
+  <section id="vista-negado" hidden>
+    <h1 class="titulo">Los avisos están bloqueados</h1>
+    <p class="texto">Su teléfono no deja que esta página le avise. Para activarlos:</p>
+    <ol class="instrucciones" id="pasos-negado"></ol>
+    <button type="button" class="boton" id="reintentar">Ya los activé</button>
+  </section>
+
+  <!-- Sin soporte -->
+  <section id="vista-sin-soporte" hidden>
+    <h1 class="titulo">Este navegador no puede recibir avisos</h1>
+    <p class="texto">Abra esta página en <strong>Google Chrome</strong> (Android) o en <strong>Safari</strong> (iPhone).</p>
+  </section>
 </main>
-<script>
-const CLAVE = 'BKVh6q993yXIuf2ert4ecnlWbfz-4XuW1Gm_Ql66hugt9CyD8i6S4sKe5mEW-P9Ps4j48zWGJsiakgbiKYOiTVA';
-const REGISTRO = 'https://aris.gilm.com.mx:5443/webhook/avisos-registro';
-const estado = document.getElementById('estado');
 
-function aBytes(b64) {
-  const pad = '='.repeat((4 - b64.length % 4) % 4);
-  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
-  return Uint8Array.from(raw, c => c.charCodeAt(0));
-}
-
-document.getElementById('activar').addEventListener('click', async () => {
-  try {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      estado.textContent = 'Este navegador no soporta avisos (en iPhone: agrégala a inicio primero).';
-      return;
-    }
-    const permiso = await Notification.requestPermission();
-    if (permiso !== 'granted') { estado.textContent = 'Permiso negado: ' + permiso; return; }
-    const reg = await navigator.serviceWorker.register('sw.js');
-    await navigator.serviceWorker.ready;
-    const vieja = await reg.pushManager.getSubscription();
-    if (vieja) await vieja.unsubscribe(); // la suscripción anterior está ligada a otra llave
-    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: aBytes(CLAVE) });
-    const r = await fetch(REGISTRO, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ celular: document.getElementById('cel').value, sub: sub.toJSON(), ua: navigator.userAgent }) });
-    const j = await r.json();
-    estado.textContent = j.ok ? '✅ Avisos activados para ···' + j.tel10.slice(-4) + '. Ya puedes cerrar y bloquear.' : 'Error: ' + j.error;
-  } catch (e) {
-    estado.textContent = 'Error: ' + e.message;
-  }
-});
-</script>
+<script src="config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

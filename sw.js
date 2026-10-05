@@ -1,36 +1,41 @@
-// v2: el push llega vacío ("toque"); se consulta el estado y se muestra el texto real.
-const ESTADO = 'https://aris.gilm.com.mx:5443/webhook/avisos-estado';
-const GENERICO = 'Tienes una actualización de Perfiles LM';
+// Mi visita · service worker. El push llega vacío ("toque"): se consulta el estado y se muestra el texto real.
+// iOS exige mostrar una notificación en cada push, por eso siempre sale una (la genérica si falla la consulta).
+importScripts('config.js');
+var GENERICO = 'Tienes una actualización de Perfiles LM';
 
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+self.addEventListener('install', function () { self.skipWaiting(); });
+self.addEventListener('activate', function (event) { event.waitUntil(self.clients.claim()); });
 
-async function textoActual() {
-  try {
-    const sub = await self.registration.pushManager.getSubscription();
+function textoActual() {
+  return self.registration.pushManager.getSubscription().then(function (sub) {
     if (!sub) return GENERICO;
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 4000);
-    const r = await fetch(ESTADO, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ endpoint: sub.endpoint }), signal: ctrl.signal });
-    clearTimeout(t);
-    const j = await r.json();
-    return (j.ok && j.ultimo && j.ultimo.texto) ? j.ultimo.texto : GENERICO;
-  } catch (e) {
-    return GENERICO;
-  }
+    var ctrl = new AbortController();
+    var t = setTimeout(function () { ctrl.abort(); }, 4000);
+    return fetch(CONFIG.ESTADO, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint: sub.endpoint }), signal: ctrl.signal
+    }).then(function (r) { clearTimeout(t); return r.json(); })
+      .then(function (j) { return (j.ok && j.ultimo && j.ultimo.texto) ? j.ultimo.texto : GENERICO; });
+  }).catch(function () { return GENERICO; });
 }
 
-self.addEventListener('push', event => {
-  event.waitUntil(textoActual().then(texto => self.registration.showNotification('Perfiles LM', {
-    body: texto,
-    tag: 'aviso-' + Date.now(),
-    requireInteraction: true,
-    vibrate: [200, 100, 200]
-  })));
+self.addEventListener('push', function (event) {
+  event.waitUntil(textoActual().then(function (texto) {
+    return self.registration.showNotification('Perfiles LM', {
+      body: texto, icon: 'icono-192.png', badge: 'icono-192.png',
+      tag: 'aviso-' + Date.now(), requireInteraction: true, vibrate: [200, 100, 200]
+    });
+  }).then(function () {
+    return self.clients.matchAll({ type: 'window' }).then(function (cs) {
+      cs.forEach(function (c) { c.postMessage('actualizar'); });
+    });
+  }));
 });
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow('./'));
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
+    for (var i = 0; i < cs.length; i++) { if ('focus' in cs[i]) { cs[i].postMessage('actualizar'); return cs[i].focus(); } }
+    return self.clients.openWindow('./');
+  }));
 });

@@ -1,0 +1,101 @@
+:root {
+  --azul: #1E3F77;
+  --azul-hondo: #142C55;
+  --amarillo: #FFC20E;
+  --verde: #2E7D4F;
+  --asfalto: #1F2328;
+  --gris: #5A6370;
+  --concreto: #E3E7EC;
+  --blanco: #FFFFFF;
+  --tipo: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--blanco); color: var(--asfalto);
+  font-family: var(--tipo); font-size: 18px; line-height: 1.45;
+}
+[hidden] { display: none !important; }
+
+.barra {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+  background: var(--azul); color: var(--blanco);
+}
+.marca { font-weight: 800; font-size: 20px; letter-spacing: .01em; }
+.folio { font-size: 16px; opacity: .9; }
+
+main { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
+
+/* El letrero: señal de carretera. Azul = esperar; amarillo = muévase ahora. */
+.letrero { background: var(--azul); color: var(--blanco); border-radius: 14px; padding: 6px; }
+.letrero-marco { border: 3px solid var(--blanco); border-radius: 10px; padding: 18px 16px 16px; }
+.letrero-titulo { margin: 0; font-size: 30px; line-height: 1.12; font-weight: 800; }
+.letrero-detalle { margin: 10px 0 0; font-size: 18px; line-height: 1.35; }
+.letrero.accion { background: var(--amarillo); color: var(--asfalto); }
+.letrero.accion .letrero-marco { border-color: var(--asfalto); }
+.letrero.listo { background: var(--verde); }
+.letrero.quieto { background: var(--concreto); color: var(--asfalto); }
+.letrero.quieto .letrero-marco { border-color: var(--gris); border-style: dashed; }
+
+.actualizado { margin: 8px 2px 0; font-size: 15px; color: var(--gris); }
+
+/* Línea de tiempo: sí es una secuencia, por eso va numerada. */
+.pasos { list-style: none; margin: 24px 0 8px; padding: 0; }
+.paso { position: relative; display: grid; grid-template-columns: 36px 1fr auto; column-gap: 12px; align-items: center; min-height: 58px; }
+.paso::before { /* tramo de carretera entre pasos */
+  content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 4px; background: var(--concreto);
+}
+.paso:first-child::before { top: 50%; }
+.paso:last-child::before { bottom: 50%; }
+.paso.hecho::before { background: var(--verde); }
+.paso.hecho + .paso.actual::before { background: linear-gradient(var(--verde) 50%, var(--concreto) 50%); }
+.marcador {
+  position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; font-weight: 800; font-size: 16px;
+  background: var(--blanco); border: 3px solid var(--concreto); color: var(--gris);
+}
+.paso.hecho .marcador { background: var(--verde); border-color: var(--verde); color: var(--blanco); }
+.paso.actual .marcador { background: var(--azul); border-color: var(--azul); color: var(--blanco); box-shadow: 0 0 0 5px rgba(30, 63, 119, .18); }
+.paso.actual.accion .marcador { background: var(--amarillo); border-color: var(--asfalto); color: var(--asfalto); box-shadow: 0 0 0 5px rgba(255, 194, 14, .35); }
+.nombre { font-size: 18px; color: var(--gris); }
+.paso.hecho .nombre, .paso.actual .nombre { color: var(--asfalto); }
+.paso.actual .nombre { font-weight: 800; }
+.hora { font-size: 16px; color: var(--gris); font-variant-numeric: tabular-nums; }
+
+.subtitulo { margin: 28px 0 8px; font-size: 18px; font-weight: 800; }
+.historial { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--concreto); }
+.historial li { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 12px 0; border-bottom: 2px solid var(--concreto); }
+.historial time { font-weight: 700; font-variant-numeric: tabular-nums; }
+.vacio { color: var(--gris); }
+
+.pie { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 28px; font-size: 15px; color: var(--gris); }
+
+/* Registro y ayudas */
+.titulo { margin: 8px 0 10px; font-size: 28px; line-height: 1.15; font-weight: 800; }
+.texto { margin: 0 0 20px; }
+.etiqueta { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type=tel] {
+  width: 100%; font: inherit; font-size: 26px; letter-spacing: .04em; padding: 14px 16px;
+  border: 3px solid var(--asfalto); border-radius: 12px; background: var(--blanco); color: var(--asfalto);
+}
+.boton {
+  width: 100%; margin-top: 16px; min-height: 60px; font: inherit; font-size: 20px; font-weight: 800;
+  border: 0; border-radius: 12px; background: var(--azul); color: var(--blanco); cursor: pointer;
+}
+.boton:active { background: var(--azul-hondo); }
+.boton[disabled] { opacity: .6; }
+.enlace { font: inherit; font-size: 15px; background: none; border: 0; padding: 8px 0; color: var(--azul); text-decoration: underline; cursor: pointer; }
+.error { margin: 10px 0 0; padding: 10px 12px; border-left: 5px solid #B3261E; background: #FCEEEE; color: #7A1A14; font-weight: 600; }
+.nota { margin-top: 16px; font-size: 15px; color: var(--gris); }
+.instrucciones { padding-left: 24px; }
+.instrucciones li { margin-bottom: 12px; }
+
+:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 3px; }
+input:focus-visible { outline-color: var(--azul); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .letrero.recien { animation: llegada .5s ease-out; }
+  @keyframes llegada { from { transform: scale(.97); } to { transform: scale(1); } }
+}
