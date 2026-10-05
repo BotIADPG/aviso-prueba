@@ -1,101 +1,149 @@
+/* Mi visita · tema "patio de noche": azul noche, ámbar = muévase, verde = cumplido. Tipo: Barlow (señalética de carretera). */
+@font-face { font-family: "Barlow"; src: url("fuentes/barlow-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Barlow"; src: url("fuentes/barlow-800.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+
 :root {
+  --noche: #0B1322;
+  --panel: #121D31;
+  --panel-alto: #18263F;
+  --linea: #263854;
+  --texto: #EDF2FA;
+  --texto-2: #A7B6CC;
+  --texto-3: #7F90AA;
+  --ambar: #FFB81C;
+  --ambar-claro: #FFCB52;
+  --ambar-hondo: #E68A00;
+  --tinta-ambar: #2A1A00;
+  --verde: #35C77E;
   --azul: #1E3F77;
-  --azul-hondo: #142C55;
-  --amarillo: #FFC20E;
-  --verde: #2E7D4F;
-  --asfalto: #1F2328;
-  --gris: #5A6370;
-  --concreto: #E3E7EC;
-  --blanco: #FFFFFF;
-  --tipo: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --azul-claro: #3D6BB8;
+  --rojo: #FF7A6E;
+  --radio: 18px;
+  --tipo: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; background: var(--noche); scrollbar-color: var(--linea) var(--noche); }
 body {
-  margin: 0; background: var(--blanco); color: var(--asfalto);
-  font-family: var(--tipo); font-size: 18px; line-height: 1.45;
+  margin: 0; min-height: 100vh; background: var(--noche); color: var(--texto);
+  font-family: var(--tipo); font-weight: 500; font-size: 18px; line-height: 1.45;
+  font-variant-numeric: tabular-nums; caret-color: var(--ambar);
 }
+::selection { background: var(--ambar); color: var(--tinta-ambar); }
 [hidden] { display: none !important; }
+h1, h2 { text-wrap: balance; }
 
+/* Barra superior */
 .barra {
-  display: flex; justify-content: space-between; align-items: baseline;
-  padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
-  background: var(--azul); color: var(--blanco);
+  position: sticky; top: 0; z-index: 2;
+  padding: calc(12px + env(safe-area-inset-top)) 16px 10px;
+  background: rgba(11, 19, 34, .94); border-bottom: 1px solid var(--linea);
 }
+.barra-fila { display: flex; justify-content: space-between; align-items: baseline; max-width: 520px; margin: 0 auto; }
 .marca { font-weight: 800; font-size: 20px; letter-spacing: .01em; }
-.folio { font-size: 16px; opacity: .9; }
+.folio { font-weight: 800; font-size: 20px; color: var(--ambar); }
+.conexion { display: flex; align-items: center; gap: 8px; max-width: 520px; margin: 6px auto 0; font-size: 15px; color: var(--texto-2); }
+.punto { width: 9px; height: 9px; border-radius: 50%; background: var(--verde); }
+.conexion.sin-red .punto { background: var(--rojo); }
 
-main { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
+main { max-width: 520px; margin: 0 auto; padding: 16px 16px calc(32px + env(safe-area-inset-bottom)); }
 
-/* El letrero: señal de carretera. Azul = esperar; amarillo = muévase ahora. */
-.letrero { background: var(--azul); color: var(--blanco); border-radius: 14px; padding: 6px; }
-.letrero-marco { border: 3px solid var(--blanco); border-radius: 10px; padding: 18px 16px 16px; }
-.letrero-titulo { margin: 0; font-size: 30px; line-height: 1.12; font-weight: 800; }
-.letrero-detalle { margin: 10px 0 0; font-size: 18px; line-height: 1.35; }
-.letrero.accion { background: var(--amarillo); color: var(--asfalto); }
-.letrero.accion .letrero-marco { border-color: var(--asfalto); }
-.letrero.listo { background: var(--verde); }
-.letrero.quieto { background: var(--concreto); color: var(--asfalto); }
-.letrero.quieto .letrero-marco { border-color: var(--gris); border-style: dashed; }
-
-.actualizado { margin: 8px 2px 0; font-size: 15px; color: var(--gris); }
-
-/* Línea de tiempo: sí es una secuencia, por eso va numerada. */
-.pasos { list-style: none; margin: 24px 0 8px; padding: 0; }
-.paso { position: relative; display: grid; grid-template-columns: 36px 1fr auto; column-gap: 12px; align-items: center; min-height: 58px; }
-.paso::before { /* tramo de carretera entre pasos */
-  content: ""; position: absolute; left: 16px; top: 0; bottom: 0; width: 4px; background: var(--concreto);
+/* Tarjeta de acción: lo único ruidoso de la página */
+.accion {
+  position: relative; border-radius: var(--radio); padding: 18px 18px 20px;
+  background: linear-gradient(160deg, var(--azul-claro) -20%, var(--azul) 55%);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .6);
 }
-.paso:first-child::before { top: 50%; }
-.paso:last-child::before { bottom: 50%; }
-.paso.hecho::before { background: var(--verde); }
-.paso.hecho + .paso.actual::before { background: linear-gradient(var(--verde) 50%, var(--concreto) 50%); }
+.accion.mueva { background: linear-gradient(165deg, var(--ambar-claro) 0%, var(--ambar) 45%, var(--ambar-hondo) 100%); color: var(--tinta-ambar);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, .7); }
+.accion.quieta { background: var(--panel); border: 1px dashed var(--linea); box-shadow: none; }
+.accion-cabeza { display: flex; justify-content: space-between; align-items: center; }
+.accion-icono { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.accion-paso { font-size: 15px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, .22); color: inherit; }
+.accion.mueva .accion-paso { background: var(--tinta-ambar); color: var(--ambar); }
+.accion-titulo { margin: 14px 0 0; font-size: 34px; line-height: 1.05; font-weight: 800; letter-spacing: -.01em; }
+.accion-detalle { margin: 10px 0 0; font-size: 18px; line-height: 1.4; max-width: 34ch; }
+.accion.quieta .accion-detalle { color: var(--texto-2); }
+
+/* Paneles */
+.panel { margin-top: 18px; padding: 18px 16px; border-radius: var(--radio); background: var(--panel); border: 1px solid var(--linea); }
+.panel-cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.panel-titulo { margin: 0 0 14px; font-size: 20px; font-weight: 800; }
+.contador { font-size: 15px; color: var(--texto-2); }
+
+/* Ruta: los 4 pasos (sí es secuencia, por eso van numerados) */
+.ruta { list-style: none; margin: 0; padding: 0; }
+.tramo { position: relative; display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; padding-bottom: 16px; }
+.tramo:last-child { padding-bottom: 0; }
+.tramo::before { content: ""; position: absolute; left: 19px; top: 40px; bottom: 0; width: 3px; border-radius: 2px; background: var(--linea); }
+.tramo:last-child::before { display: none; }
+.tramo.hecho::before { background: var(--verde); }
+.tramo.actual::before { background: linear-gradient(var(--ambar), var(--linea)); }
 .marcador {
-  position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 50%;
-  display: grid; place-items: center; font-weight: 800; font-size: 16px;
-  background: var(--blanco); border: 3px solid var(--concreto); color: var(--gris);
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 800; font-size: 17px; color: var(--texto-3); background: var(--noche); border: 2px solid var(--linea);
 }
-.paso.hecho .marcador { background: var(--verde); border-color: var(--verde); color: var(--blanco); }
-.paso.actual .marcador { background: var(--azul); border-color: var(--azul); color: var(--blanco); box-shadow: 0 0 0 5px rgba(30, 63, 119, .18); }
-.paso.actual.accion .marcador { background: var(--amarillo); border-color: var(--asfalto); color: var(--asfalto); box-shadow: 0 0 0 5px rgba(255, 194, 14, .35); }
-.nombre { font-size: 18px; color: var(--gris); }
-.paso.hecho .nombre, .paso.actual .nombre { color: var(--asfalto); }
-.paso.actual .nombre { font-weight: 800; }
-.hora { font-size: 16px; color: var(--gris); font-variant-numeric: tabular-nums; }
+.marcador svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.tramo.hecho .marcador { background: var(--verde); border-color: var(--verde); color: var(--noche); }
+.tramo.actual .marcador { background: var(--ambar); border-color: var(--ambar); color: var(--tinta-ambar); }
+.tramo-cuerpo { padding-top: 8px; }
+.tramo-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.tramo-nombre { font-weight: 800; font-size: 18px; color: var(--texto-3); }
+.tramo.hecho .tramo-nombre { color: var(--texto); }
+.tramo-hora { font-size: 15px; color: var(--texto-2); }
+.tramo.hecho .tramo-hora { color: var(--verde); }
+.tramo-texto { margin: 2px 0 0; font-size: 16px; color: var(--texto-3); }
+.tramo.hecho .tramo-texto { color: var(--texto-2); }
+.tramo.actual .tramo-cuerpo {
+  margin-top: -2px; padding: 12px 14px; border-radius: 14px;
+  background: var(--panel-alto); border: 1.5px solid var(--ambar);
+}
+.tramo.actual .tramo-nombre { color: var(--ambar); font-size: 19px; }
+.tramo.actual .tramo-hora { color: var(--ambar); }
+.tramo.actual .tramo-texto { color: var(--texto); font-size: 17px; }
 
-.subtitulo { margin: 28px 0 8px; font-size: 18px; font-weight: 800; }
-.historial { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--concreto); }
-.historial li { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 12px 0; border-bottom: 2px solid var(--concreto); }
-.historial time { font-weight: 700; font-variant-numeric: tabular-nums; }
-.vacio { color: var(--gris); }
-
-.pie { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 28px; font-size: 15px; color: var(--gris); }
+/* Avisos */
+.avisos { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.avisos li { display: grid; grid-template-columns: 50px 1fr; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--noche); border: 1px solid var(--linea); }
+.avisos li:first-child { border-color: rgba(255, 184, 28, .45); }
+.avisos time { font-weight: 800; color: var(--ambar); }
+.avisos li:not(:first-child) time { color: var(--texto-2); }
+.vacio { margin: 0; color: var(--texto-2); }
+.pie { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--linea); font-size: 15px; color: var(--texto-2); }
+.pie-tel { display: inline-flex; align-items: center; gap: 6px; }
+.pie-tel svg { width: 18px; height: 18px; fill: none; stroke: var(--verde); stroke-width: 2; stroke-linecap: round; }
 
 /* Registro y ayudas */
-.titulo { margin: 8px 0 10px; font-size: 28px; line-height: 1.15; font-weight: 800; }
-.texto { margin: 0 0 20px; }
-.etiqueta { display: block; font-weight: 700; margin-bottom: 6px; }
+.hoja { padding-top: 8px; }
+.titulo { margin: 8px 0 10px; font-size: 32px; line-height: 1.08; font-weight: 800; }
+.texto { margin: 0 0 22px; color: var(--texto-2); max-width: 40ch; }
+.etiqueta { display: block; font-weight: 800; margin-bottom: 8px; }
 input[type=tel] {
-  width: 100%; font: inherit; font-size: 26px; letter-spacing: .04em; padding: 14px 16px;
-  border: 3px solid var(--asfalto); border-radius: 12px; background: var(--blanco); color: var(--asfalto);
+  width: 100%; font: inherit; font-weight: 800; font-size: 28px; letter-spacing: .04em; padding: 14px 16px;
+  border: 2px solid var(--linea); border-radius: 14px; background: var(--panel); color: var(--texto);
 }
+input[type=tel]::placeholder { color: var(--texto-3); font-weight: 500; }
+input[type=tel]:focus { border-color: var(--ambar); outline: none; background: var(--panel-alto); }
 .boton {
-  width: 100%; margin-top: 16px; min-height: 60px; font: inherit; font-size: 20px; font-weight: 800;
-  border: 0; border-radius: 12px; background: var(--azul); color: var(--blanco); cursor: pointer;
+  width: 100%; margin-top: 16px; min-height: 60px; font: inherit; font-size: 21px; font-weight: 800;
+  border: 0; border-radius: 14px; background: var(--ambar); color: var(--tinta-ambar); cursor: pointer;
+  box-shadow: 0 10px 22px -12px rgba(0, 0, 0, .8);
 }
-.boton:active { background: var(--azul-hondo); }
-.boton[disabled] { opacity: .6; }
-.enlace { font: inherit; font-size: 15px; background: none; border: 0; padding: 8px 0; color: var(--azul); text-decoration: underline; cursor: pointer; }
-.error { margin: 10px 0 0; padding: 10px 12px; border-left: 5px solid #B3261E; background: #FCEEEE; color: #7A1A14; font-weight: 600; }
-.nota { margin-top: 16px; font-size: 15px; color: var(--gris); }
-.instrucciones { padding-left: 24px; }
+.boton:hover { background: var(--ambar-claro); }
+.boton:active { background: var(--ambar-hondo); }
+.boton[disabled] { opacity: .65; cursor: progress; }
+.enlace { font: inherit; font-size: 15px; font-weight: 800; background: none; border: 0; padding: 8px 0; color: var(--ambar); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.error { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(255, 122, 110, .12); border: 1px solid rgba(255, 122, 110, .5); color: #FFC2BC; }
+.nota { margin-top: 16px; font-size: 15px; color: var(--texto-2); }
+.nota strong, .texto strong, .instrucciones strong { color: var(--texto); }
+.instrucciones { padding-left: 24px; color: var(--texto-2); }
 .instrucciones li { margin-bottom: 12px; }
+.instrucciones li::marker { color: var(--ambar); font-weight: 800; }
 
-:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 3px; }
-input:focus-visible { outline-color: var(--azul); }
+:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
 
+/* Un solo momento de movimiento: cuando cambia el paso, la tarjeta de acción "llega". */
 @media (prefers-reduced-motion: no-preference) {
-  .letrero.recien { animation: llegada .5s ease-out; }
-  @keyframes llegada { from { transform: scale(.97); } to { transform: scale(1); } }
+  .accion.llega { animation: llega .6s cubic-bezier(.16, 1, .3, 1); }
+  @keyframes llega { from { transform: translateY(6px) scale(.98); filter: brightness(1.25); } to { transform: none; filter: none; } }
 }
